@@ -4,10 +4,11 @@ import datetime
 
 import torch
 
-from model import Unet
+# model 中Unet为另一个项目上的实现
+# from model import Unet
+from Git_model import UNet
 from my_dataset import DriveDataset
 import transforms as T
-from model import Unet
 from train_utils import train_one_epoch, evaluate, create_lr_scheduler
 
 # 
@@ -55,17 +56,17 @@ def get_transform(train, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
 
 
 # 默认两种类别
-def create_model():
-    model = Unet(3, 1)
+def create_model(num_classes):
+    model = UNet(in_channels=3, num_classes=num_classes, base_c=32)
     return model
 
 
 def main(args):
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     batch_size = args.batch_size
-    # num_classes = args.num_classes + 1
+    num_classes = args.num_classes + 1
     # 默认只区分前景和背景
-    num_classes = 2
+    # num_classes = 2
 
     mean = (0.709, 0.381, 0.224)
     std = (0.127, 0.079, 0.043)
@@ -79,7 +80,7 @@ def main(args):
                                train=False,
                                transforms=get_transform(train=False, mean=mean, std=std))
 
-    num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
+    num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 0])
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=batch_size,
                                                num_workers=num_workers,
@@ -94,7 +95,7 @@ def main(args):
                                              collate_fn=val_dataset.collate_fn)
 
     # revised
-    model = create_model()
+    model = create_model(num_classes=num_classes)
     model.to(device)
 
     params_to_optimize = [p for p in model.parameters() if p.requires_grad]

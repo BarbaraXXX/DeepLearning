@@ -105,9 +105,9 @@ class Unet(nn.Module):
         d2 = torch.cat((e1, d2), dim=1)
         d2 = self.Up_conv2(d2)
 
-        out = self.Conv(d2)
+        logits = self.Conv(d2)
 
-        return out
+        return {"out":logits}
 
 
 if __name__ == "__main__":
